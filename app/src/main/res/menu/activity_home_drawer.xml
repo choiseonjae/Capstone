@@ -5,7 +5,7 @@
 
     <group android:checkableBehavior="single">
         <item
-            android:id="@+id/nav_menu"
+            android:id="@+id/album"
             android:icon="@drawable/album2_w"
             android:iconTint="@android:color/white"
             android:title="Album" />
@@ -15,7 +15,7 @@
             android:iconTint="@android:color/white"
             android:title="Chat" />
         <item
-            android:id="@+id/nav_orders"
+            android:id="@+id/setting"
             android:icon="@drawable/setting_w"
             android:iconTint="@android:color/white"
             android:title="Setting" />

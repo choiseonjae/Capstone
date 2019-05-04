@@ -36,6 +36,7 @@ import android.widget.Toast;
 
 import com.example.capstone.Common.Common;
 import com.example.capstone.Interface.ItemClickListener;
+import com.example.capstone.Model.AlbumFile;
 import com.example.capstone.Model.Category;
 import com.example.capstone.R;
 import com.example.capstone.ViewHolder.MenuViewHolder;
@@ -62,14 +63,18 @@ public class Home extends AppCompatActivity
 
     // camera
     private static final int REQUEST_IMAGE_CAPTURE = 672;
+    public static final String ALBUM = "Album";
+    public static final String storageUrl = "gs://capstone-843d1.appspot.com";
     private String imageFilePath;
     private Uri photoUri;
     private static final int PICK_FROM_CAMERA = 0;
 
 
+    StorageReference storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(storageUrl);
+
     private TextView nameView;
-    FirebaseDatabase database;
-    DatabaseReference category;
+    FirebaseDatabase database = FirebaseDatabase.getInstance();
+    DatabaseReference category, album = database.getReference(ALBUM);
     FirebaseRecyclerAdapter<Category, MenuViewHolder> adapter;
 
     TextView txtFullName;
@@ -86,8 +91,8 @@ public class Home extends AppCompatActivity
         toolbar.setTitle("Menu");
 
         //Init Firebase
-        database = FirebaseDatabase.getInstance();
         category = database.getReference("Category");
+
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
@@ -168,19 +173,20 @@ public class Home extends AppCompatActivity
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
+
+        // menu 버튼에서 클릭 요소
         int id = item.getItemId();
 
-        if (id == R.id.nav_menu) {
-            // Handle the camera action
-        } else if (id == R.id.nav_orders) {
-            Intent intent = new Intent(Home.this, Setting.class);
-            startActivity(intent);
-        } else if (id == R.id.chat) {
-            Toast.makeText(this, "chat 누름.", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(Home.this, ChatList.class);
-            startActivity(intent);
-        } else if (id == R.id.nav_log_out) {
+        if (id == R.id.album)
+            startActivity(new Intent(Home.this, Album.class));
+
+        if (id == R.id.setting)
+            startActivity(new Intent(Home.this, Setting.class));
+
+        if (id == R.id.chat) {
+            startActivity(new Intent(Home.this, ChatList.class));
+        }
+        if (id == R.id.nav_log_out) {
             SharedPreferences pref = getSharedPreferences("pref", MODE_PRIVATE);
             SharedPreferences.Editor editor = pref.edit();
             editor.remove("edtPhone");
@@ -202,10 +208,6 @@ public class Home extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-
-
-
-
             UploadPicture_alert(this);
 
         }
@@ -232,27 +234,33 @@ public class Home extends AppCompatActivity
                         Toast.makeText(getApplicationContext(), "예를 선택했습니다.", Toast.LENGTH_LONG).show();
 
 
+
+
+
                         final ProgressDialog progressDialog = new ProgressDialog(home);
                         progressDialog.setTitle("업로드중...");
                         progressDialog.show();
-                        //storage
-                        FirebaseStorage storage = FirebaseStorage.getInstance();
-
 
                         //Unique한 파일명을 만들자.
                         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMHH_mmss");
                         Date now = new Date();
-                        String filename = formatter.format(now) + ".png";
+                        final String filename = formatter.format(now) + ".png";
+
                         //storage 주소와 폴더 파일명을 지정해 준다.
-                        StorageReference storageRef = storage.getReferenceFromUrl("gs://capstone-843d1.appspot.com").child("images/" + filename);
+                        StorageReference fileRef = storageRef.child(SignIn.userID + "/" + filename);
+
                         //올라가거라...
-                        storageRef.putFile(photoUri)
+                        fileRef.putFile(photoUri)
                                 //성공시
                                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                                     @Override
                                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                                         progressDialog.dismiss(); //업로드 진행 Dialog 상자 닫기
                                         Toast.makeText(getApplicationContext(), "업로드 완료!", Toast.LENGTH_SHORT).show();
+                                        AlbumFile af = new AlbumFile();
+                                        af.setFileName(filename);
+                                        album.child(SignIn.userID).push().setValue(af);
+
                                     }
                                 })
                                 //실패시
@@ -275,12 +283,20 @@ public class Home extends AppCompatActivity
                                 });
 
 
+
+
+
                     }
                 });
         builder.setNegativeButton("아니오",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         Toast.makeText(getApplicationContext(), "아니오를 선택했습니다.", Toast.LENGTH_LONG).show();
+
+
+
+
+
                     }
                 });
         builder.show();

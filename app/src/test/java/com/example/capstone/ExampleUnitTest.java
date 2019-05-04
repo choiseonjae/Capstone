@@ -1,4 +1,4 @@
-package com.example.androideatit;
+package com.example.capstone;
 
 import org.junit.Test;
 
