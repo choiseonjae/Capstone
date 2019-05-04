@@ -28,10 +28,7 @@
         app:menu="@menu/activity_home_drawer" >
 
 
+
     </android.support.design.widget.NavigationView>
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:srcCompat="@drawable/bill" />
+
 </android.support.v4.widget.DrawerLayout>

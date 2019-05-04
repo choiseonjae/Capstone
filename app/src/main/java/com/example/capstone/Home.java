@@ -263,7 +263,7 @@ public class Home extends AppCompatActivity
                 exifDegree = 0;
             }
 
-            ((ImageView) findViewById(R.id.imageView)).setImageBitmap(rotate(bitmap,exifDegree));
+            //((ImageView) findViewById(R.id.imageView)).setImageBitmap(rotate(bitmap,exifDegree));
 
         }
     }
