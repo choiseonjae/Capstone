@@ -65,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
 //        }
 //        else{
         Intent startIntent = new Intent(MainActivity.this, StartActivity.class);
+       // Intent startIntent = new Intent(MainActivity.this, Camera.class);
         startActivity(startIntent);
         finish();
 //        }

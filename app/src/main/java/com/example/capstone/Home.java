@@ -64,6 +64,7 @@ public class Home extends AppCompatActivity
     private static final int REQUEST_IMAGE_CAPTURE = 672;
     private String imageFilePath;
     private Uri photoUri;
+    private static final int PICK_FROM_CAMERA = 0;
 
 
     private TextView nameView;
@@ -93,6 +94,7 @@ public class Home extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 openCamera();
             }
         });
@@ -121,29 +123,6 @@ public class Home extends AppCompatActivity
         recycler_menu.setLayoutManager(layoutManager);
 
         loadMenu();
-    }
-
-
-    private void loadMenu() {
-        adapter = new FirebaseRecyclerAdapter<Category, MenuViewHolder>(Category.class, R.layout.menu_item, MenuViewHolder.class, category) {
-            @Override
-            protected void populateViewHolder(MenuViewHolder viewHolder, Category model, int position) {
-                viewHolder.txtMenuName.setText(model.getName());
-                Picasso.with(getBaseContext()).load(model.getImage())
-                        .into(viewHolder.imageView);
-                final Category clickItem = model;
-                viewHolder.setItemClickListener(new ItemClickListener() {
-                    @Override
-                    public void onClick(View view, int position, boolean isLongClick) {
-                        //Get CategoryId and send to new Activity
-                        Intent foodList = new Intent(Home.this, FoodList.class);
-                        foodList.putExtra("CategoryId", adapter.getRef(position).getKey());
-                        startActivity(foodList);
-                    }
-                });
-            }
-        };
-        recycler_menu.setAdapter(adapter);
     }
 
 
@@ -218,31 +197,22 @@ public class Home extends AppCompatActivity
     }
 
 
+    // 사진 촬영 이후 행동
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
 
-            photoUri = data.getData();
 
-//            final ProgressDialog progressDialog = new ProgressDialog(this);
-//            progressDialog.setTitle("업로드중...");
-//            progressDialog.show();
-//
-//            UploadPicture_alert(progressDialog);
+
+
+            UploadPicture_alert(this);
 
         }
+
+
     }
 
-    private int exifOrientationToDegress(int exifOrientation) {
-        if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_90) {
-            return 90;
-        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_180) {
-            return 180;
-        } else if (exifOrientation == ExifInterface.ORIENTATION_ROTATE_270) {
-            return 270;
-        }
-        return 0;
-    }
 
     private Bitmap rotate(Bitmap bitmap, float degree) {
         Matrix matrix = new Matrix();
@@ -250,70 +220,70 @@ public class Home extends AppCompatActivity
         return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
     }
 
-    public void UploadPicture_alert(final ProgressDialog progressDialog) {
+    public void UploadPicture_alert(final Home home) {
 
 
-//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//        builder.setTitle("사진 업로드");
-//        builder.setMessage("사진을 Cloud에 업로드 하시겠습니까?\n'아니오' 선택 시 사진은 삭제됩니다.");
-//        builder.setPositiveButton("예",
-//                new DialogInterface.OnClickListener() {
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        Toast.makeText(getApplicationContext(), "예를 선택했습니다.",Toast.LENGTH_LONG).show();
-//
-//                        //storage
-//                        FirebaseStorage storage = FirebaseStorage.getInstance();
-//
-//
-//
-//
-//                        //Unique한 파일명을 만들자.
-//                        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMHH_mmss");
-//                        Date now = new Date();
-//                        String filename = formatter.format(now) + ".png";
-//                        //storage 주소와 폴더 파일명을 지정해 준다.
-//                        StorageReference storageRef = storage.getReferenceFromUrl("gs://yourStorage.appspot.com").child("images/" + filename);
-//                        //올라가거라...
-//                        storageRef.putFile(photoUri)
-//                                //성공시
-//                                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-//                                    @Override
-//                                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-//                                        progressDialog.dismiss(); //업로드 진행 Dialog 상자 닫기
-//                                        Toast.makeText(getApplicationContext(), "업로드 완료!", Toast.LENGTH_SHORT).show();
-//                                    }
-//                                })
-//                                //실패시
-//                                .addOnFailureListener(new OnFailureListener() {
-//                                    @Override
-//                                    public void onFailure(@NonNull Exception e) {
-//                                        progressDialog.dismiss();
-//                                        Toast.makeText(getApplicationContext(), "업로드 실패!", Toast.LENGTH_SHORT).show();
-//                                    }
-//                                })
-//                                //진행중
-//                                .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-//                                    @Override
-//                                    public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-//                                        @SuppressWarnings("VisibleForTests") //이걸 넣어 줘야 아랫줄에 에러가 사라진다. 넌 누구냐?
-//                                                double progress = (100 * taskSnapshot.getBytesTransferred()) /  taskSnapshot.getTotalByteCount();
-//                                        //dialog에 진행률을 퍼센트로 출력해 준다
-//                                        progressDialog.setMessage("Uploaded " + ((int) progress) + "% ...");
-//                                    }
-//                                });
-//
-//
-//
-//
-//                }
-//                });
-//        builder.setNegativeButton("아니오",
-//                new DialogInterface.OnClickListener() {
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        Toast.makeText(getApplicationContext(),"아니오를 선택했습니다.",Toast.LENGTH_LONG).show();
-//                    }
-//                });
-//        builder.show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("사진 업로드");
+        builder.setMessage("사진을 Cloud에 업로드 하시겠습니까?\n'아니오' 선택 시 사진은 삭제됩니다.");
+        builder.setPositiveButton("예",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(getApplicationContext(), "예를 선택했습니다.", Toast.LENGTH_LONG).show();
+
+
+                        final ProgressDialog progressDialog = new ProgressDialog(home);
+                        progressDialog.setTitle("업로드중...");
+                        progressDialog.show();
+                        //storage
+                        FirebaseStorage storage = FirebaseStorage.getInstance();
+
+
+                        //Unique한 파일명을 만들자.
+                        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMHH_mmss");
+                        Date now = new Date();
+                        String filename = formatter.format(now) + ".png";
+                        //storage 주소와 폴더 파일명을 지정해 준다.
+                        StorageReference storageRef = storage.getReferenceFromUrl("gs://capstone-843d1.appspot.com").child("images/" + filename);
+                        //올라가거라...
+                        storageRef.putFile(photoUri)
+                                //성공시
+                                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                    @Override
+                                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                        progressDialog.dismiss(); //업로드 진행 Dialog 상자 닫기
+                                        Toast.makeText(getApplicationContext(), "업로드 완료!", Toast.LENGTH_SHORT).show();
+                                    }
+                                })
+                                //실패시
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        progressDialog.dismiss();
+                                        Toast.makeText(getApplicationContext(), "업로드 실패!", Toast.LENGTH_SHORT).show();
+                                    }
+                                })
+                                //진행중
+                                .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                                    @Override
+                                    public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                                        @SuppressWarnings("VisibleForTests") //이걸 넣어 줘야 아랫줄에 에러가 사라진다. 넌 누구냐?
+                                                double progress = (100 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
+                                        //dialog에 진행률을 퍼센트로 출력해 준다
+                                        progressDialog.setMessage("Uploaded " + ((int) progress) + "% ...");
+                                    }
+                                });
+
+
+                    }
+                });
+        builder.setNegativeButton("아니오",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        Toast.makeText(getApplicationContext(), "아니오를 선택했습니다.", Toast.LENGTH_LONG).show();
+                    }
+                });
+        builder.show();
     }
 
     private void openCamera() {
@@ -327,12 +297,34 @@ public class Home extends AppCompatActivity
             }
 
             if (photoFile != null) {
-                photoUri = FileProvider.getUriForFile(getApplicationContext(), getPackageName(), photoFile);
+                photoUri = FileProvider.getUriForFile(getApplicationContext(), "com.bignerdranch.android.test.fileprovider", photoFile);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
                 startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
             }
         }
     }
 
+
+    private void loadMenu() {
+        adapter = new FirebaseRecyclerAdapter<Category, MenuViewHolder>(Category.class, R.layout.menu_item, MenuViewHolder.class, category) {
+            @Override
+            protected void populateViewHolder(MenuViewHolder viewHolder, Category model, int position) {
+                viewHolder.txtMenuName.setText(model.getName());
+                Picasso.with(getBaseContext()).load(model.getImage())
+                        .into(viewHolder.imageView);
+                final Category clickItem = model;
+                viewHolder.setItemClickListener(new ItemClickListener() {
+                    @Override
+                    public void onClick(View view, int position, boolean isLongClick) {
+                        //Get CategoryId and send to new Activity
+                        Intent foodList = new Intent(Home.this, FoodList.class);
+                        foodList.putExtra("CategoryId", adapter.getRef(position).getKey());
+                        startActivity(foodList);
+                    }
+                });
+            }
+        };
+        recycler_menu.setAdapter(adapter);
+    }
 
 }
