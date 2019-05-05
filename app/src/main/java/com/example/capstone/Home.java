@@ -2,14 +2,9 @@ package com.example.capstone;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Matrix;
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -17,7 +12,6 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.v4.content.FileProvider;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -26,11 +20,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -38,24 +30,20 @@ import com.example.capstone.Common.Common;
 import com.example.capstone.Interface.ItemClickListener;
 import com.example.capstone.Model.AlbumFile;
 import com.example.capstone.Model.Category;
-import com.example.capstone.R;
+import com.example.capstone.Model.FireBaseRef;
 import com.example.capstone.ViewHolder.MenuViewHolder;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.gun0912.tedpermission.PermissionListener;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 
 public class Home extends AppCompatActivity
@@ -63,18 +51,11 @@ public class Home extends AppCompatActivity
 
     // camera
     private static final int REQUEST_IMAGE_CAPTURE = 672;
-    public static final String ALBUM = "Album";
-    public static final String storageUrl = "gs://capstone-843d1.appspot.com";
-    private String imageFilePath;
+
     private Uri photoUri;
-    private static final int PICK_FROM_CAMERA = 0;
-
-
-    StorageReference storageRef = FirebaseStorage.getInstance().getReferenceFromUrl(storageUrl);
 
     private TextView nameView;
-    FirebaseDatabase database = FirebaseDatabase.getInstance();
-    DatabaseReference category, album = database.getReference(ALBUM);
+    DatabaseReference category;
     FirebaseRecyclerAdapter<Category, MenuViewHolder> adapter;
 
     TextView txtFullName;
@@ -82,24 +63,24 @@ public class Home extends AppCompatActivity
     RecyclerView recycler_menu;
     RecyclerView.LayoutManager layoutManager;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
+
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setTitle("Menu");
 
         //Init Firebase
-        category = database.getReference("Category");
+        category = FireBaseRef.database.getReference("Category");
 
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-
-        fab.setOnClickListener(new View.OnClickListener() {
+        // 오른쪽 하단 원 버튼 : 카메라 실행
+        ((FloatingActionButton) findViewById(R.id.fab)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 openCamera();
             }
         });
@@ -140,7 +121,6 @@ public class Home extends AppCompatActivity
                 ".jpg",
                 storageDir
         );
-        imageFilePath = image.getAbsolutePath();
         return image;
     }
 
@@ -165,8 +145,6 @@ public class Home extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
-
         return super.onOptionsItemSelected(item);
     }
 
@@ -177,15 +155,19 @@ public class Home extends AppCompatActivity
         // menu 버튼에서 클릭 요소
         int id = item.getItemId();
 
+        // 앨범 클릭
         if (id == R.id.album)
             startActivity(new Intent(Home.this, Album.class));
 
+        // 설정 클릭
         if (id == R.id.setting)
             startActivity(new Intent(Home.this, Setting.class));
 
-        if (id == R.id.chat) {
+        // 채팅 클릭
+        if (id == R.id.chat)
             startActivity(new Intent(Home.this, ChatList.class));
-        }
+
+        // 로그아웃
         if (id == R.id.nav_log_out) {
             SharedPreferences pref = getSharedPreferences("pref", MODE_PRIVATE);
             SharedPreferences.Editor editor = pref.edit();
@@ -197,33 +179,22 @@ public class Home extends AppCompatActivity
             Intent intent = new Intent(Home.this, MainActivity.class);
             startActivity(intent);
         }
+
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
-
-    // 사진 촬영 이후 행동
-    @Override
+    @Override // 사진 촬영 이후 행동
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            UploadPicture_alert(this);
-
-        }
-
-
+        // ok 버튼 클릭시
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK)
+            UploadPicture_alert();
     }
 
-
-    private Bitmap rotate(Bitmap bitmap, float degree) {
-        Matrix matrix = new Matrix();
-        matrix.postRotate(degree);
-        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-    }
-
-    public void UploadPicture_alert(final Home home) {
-
+    // 사진 업로드 할 지 물어보는 알람
+    public void UploadPicture_alert() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("사진 업로드");
@@ -231,92 +202,80 @@ public class Home extends AppCompatActivity
         builder.setPositiveButton("예",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(getApplicationContext(), "예를 선택했습니다.", Toast.LENGTH_LONG).show();
-
-
-
-
-
-                        final ProgressDialog progressDialog = new ProgressDialog(home);
-                        progressDialog.setTitle("업로드중...");
-                        progressDialog.show();
-
-                        //Unique한 파일명을 만들자.
-                        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMHH_mmss");
-                        Date now = new Date();
-                        final String filename = formatter.format(now) + ".png";
-
-                        //storage 주소와 폴더 파일명을 지정해 준다.
-                        StorageReference fileRef = storageRef.child(SignIn.userID + "/" + filename);
-
-                        //올라가거라...
-                        fileRef.putFile(photoUri)
-                                //성공시
-                                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                                    @Override
-                                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                                        progressDialog.dismiss(); //업로드 진행 Dialog 상자 닫기
-                                        Toast.makeText(getApplicationContext(), "업로드 완료!", Toast.LENGTH_SHORT).show();
-                                        AlbumFile af = new AlbumFile();
-                                        af.setFileName(filename);
-                                        album.child(SignIn.userID).push().setValue(af);
-
-                                    }
-                                })
-                                //실패시
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        progressDialog.dismiss();
-                                        Toast.makeText(getApplicationContext(), "업로드 실패!", Toast.LENGTH_SHORT).show();
-                                    }
-                                })
-                                //진행중
-                                .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
-                                    @Override
-                                    public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
-                                        @SuppressWarnings("VisibleForTests") //이걸 넣어 줘야 아랫줄에 에러가 사라진다. 넌 누구냐?
-                                                double progress = (100 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
-                                        //dialog에 진행률을 퍼센트로 출력해 준다
-                                        progressDialog.setMessage("Uploaded " + ((int) progress) + "% ...");
-                                    }
-                                });
-
-
-
-
-
+                        uploadPicture();
                     }
                 });
         builder.setNegativeButton("아니오",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        Toast.makeText(getApplicationContext(), "아니오를 선택했습니다.", Toast.LENGTH_LONG).show();
-
-
-
-
-
+                        Toast.makeText(getApplicationContext(), "취소 되었습니다.", Toast.LENGTH_LONG).show();
                     }
                 });
+
         builder.show();
     }
 
+    private void uploadPicture() {
+        // 진행상황 보여줌.
+        final ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setTitle("업로드중...");
+        progressDialog.show();
+
+        // 현재 시간 + png
+        final String filename = new SimpleDateFormat("yyyyMMHH_mmss").format(new Date()) + ".png";
+
+        // 사용자 폴더에 사진 파일 저장을 위한 서버 저장 공간 참조 가져옴.
+        StorageReference storageRef = FireBaseRef.ALBUM_STORAGE.child(SignIn.userID + "/" + filename);
+
+        // 서버에 사진 업로드
+        storageRef.putFile(photoUri)
+                //성공시
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        progressDialog.dismiss(); //업로드 진행 Dialog 상자 닫기
+                        Toast.makeText(getApplicationContext(), "업로드 완료!", Toast.LENGTH_SHORT).show();
+                        AlbumFile af = new AlbumFile();
+                        af.setFileName(filename);
+                        FireBaseRef.ALBUM_DATABASE.child(SignIn.userID).push().setValue(af);
+
+                    }
+                })
+                //실패시
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        progressDialog.dismiss();
+                        Toast.makeText(getApplicationContext(), "업로드 실패!", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                //진행중
+                .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                        @SuppressWarnings("VisibleForTests") //이걸 넣어 줘야 아랫줄에 에러가 사라진다. 넌 누구냐?
+                                double progress = (100 * taskSnapshot.getBytesTransferred()) / taskSnapshot.getTotalByteCount();
+                        //dialog에 진행률을 퍼센트로 출력해 준다
+                        progressDialog.setMessage("Uploaded " + ((int) progress) + "% ...");
+                    }
+                });
+    }
+
     private void openCamera() {
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (intent.resolveActivity(getPackageManager()) != null) {
-            File photoFile = null;
-            try {
+        try {
+            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            if (intent.resolveActivity(getPackageManager()) != null) {
+                File photoFile = null;
                 photoFile = createImageFile();
-            } catch (IOException e) {
 
+                if (photoFile != null) {
+                    photoUri = FileProvider.getUriForFile(getApplicationContext(), "com.bignerdranch.android.test.fileprovider", photoFile);
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+                    startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
+                }
             }
 
-            if (photoFile != null) {
-                photoUri = FileProvider.getUriForFile(getApplicationContext(), "com.bignerdranch.android.test.fileprovider", photoFile);
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
-                startActivityForResult(intent, REQUEST_IMAGE_CAPTURE);
-            }
+        } catch (IOException e) {
         }
     }
 

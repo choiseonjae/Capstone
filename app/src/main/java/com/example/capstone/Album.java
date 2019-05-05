@@ -10,21 +10,17 @@ import android.support.v7.widget.RecyclerView;
 import android.widget.Toast;
 
 import com.example.capstone.Model.AlbumFile;
+import com.example.capstone.Model.FireBaseRef;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
+
 
 public class Album extends AppCompatActivity {
 
     RecyclerAdapter adapter;
-    StorageReference album = FirebaseStorage.getInstance().getReferenceFromUrl(Home.storageUrl);
-
 
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -42,9 +38,8 @@ public class Album extends AppCompatActivity {
     }
 
     private void getData() {
-        DatabaseReference database = FirebaseDatabase.getInstance().getReference(Home.ALBUM);
 
-        database.child(SignIn.userID).addChildEventListener(new ChildEventListener() {
+        FireBaseRef.ALBUM_DATABASE.child(SignIn.userID).addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
 
@@ -53,11 +48,10 @@ public class Album extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), folder, Toast.LENGTH_SHORT).show();
 
                 //Url을 다운받기
-                album.child(folder).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                FireBaseRef.ALBUM_STORAGE.child(folder).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
                             public void onSuccess(Uri uri) {
                                 adapter.addItem(uri.toString());
-                                Toast.makeText(getApplicationContext(), "다운로드 성공 : "+ uri, Toast.LENGTH_SHORT).show();
                                 adapter.notifyDataSetChanged();
 
                             }
