@@ -26,11 +26,9 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.capstone.Common.Common;
-import com.example.capstone.Interface.ItemClickListener;
-import com.example.capstone.Model.AlbumFile;
+import com.example.capstone.Common.Infomation;
+import com.example.capstone.Model.Picture;
 import com.example.capstone.Model.Category;
-import com.example.capstone.Model.FireBaseRef;
 import com.example.capstone.ViewHolder.MenuViewHolder;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -39,7 +37,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.squareup.picasso.Picasso;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,6 +48,8 @@ public class Home extends AppCompatActivity
 
     // camera
     private static final int REQUEST_IMAGE_CAPTURE = 672;
+
+    final String myID = Infomation.getMyId();
 
     private Uri photoUri;
 
@@ -75,7 +74,7 @@ public class Home extends AppCompatActivity
         toolbar.setTitle("Menu");
 
         //Init Firebase
-        category = FireBaseRef.database.getReference("Category");
+        category = Infomation.getDatabase("Category");
 
         // 오른쪽 하단 원 버튼 : 카메라 실행
         ((FloatingActionButton) findViewById(R.id.fab)).setOnClickListener(new View.OnClickListener() {
@@ -100,15 +99,13 @@ public class Home extends AppCompatActivity
         //Set Name for user
         View headerView = navigationView.getHeaderView(0);
         txtFullName = headerView.findViewById(R.id.txtFullName);
-        txtFullName.setText(Common.currentUser.getName());
+        txtFullName.setText(Infomation.getUserName());
 
         //Load menu
         recycler_menu = findViewById(R.id.recycler_menu);
         recycler_menu.setHasFixedSize(true);
         layoutManager = new LinearLayoutManager(this);
         recycler_menu.setLayoutManager(layoutManager);
-
-        loadMenu();
     }
 
 
@@ -225,7 +222,7 @@ public class Home extends AppCompatActivity
         final String filename = new SimpleDateFormat("yyyyMMHH_mmss").format(new Date()) + ".png";
 
         // 사용자 폴더에 사진 파일 저장을 위한 서버 저장 공간 참조 가져옴.
-        StorageReference storageRef = FireBaseRef.ALBUM_STORAGE.child(SignIn.userID + "/" + filename);
+        StorageReference storageRef = Infomation.getAlbum(myID+ "/" + filename);
 
         // 서버에 사진 업로드
         storageRef.putFile(photoUri)
@@ -235,9 +232,12 @@ public class Home extends AppCompatActivity
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                         progressDialog.dismiss(); //업로드 진행 Dialog 상자 닫기
                         Toast.makeText(getApplicationContext(), "업로드 완료!", Toast.LENGTH_SHORT).show();
-                        AlbumFile af = new AlbumFile();
-                        af.setFileName(filename);
-                        FireBaseRef.ALBUM_DATABASE.child(SignIn.userID).push().setValue(af);
+                        Picture picture = new Picture();
+                        picture.setFileName(filename);
+                        //picture.setGps();
+                        picture.setUploadID(myID);
+                        //picture.setUri();
+                        Infomation.getAlbumData(myID).push().setValue(picture);
 
                     }
                 })
@@ -280,26 +280,5 @@ public class Home extends AppCompatActivity
     }
 
 
-    private void loadMenu() {
-        adapter = new FirebaseRecyclerAdapter<Category, MenuViewHolder>(Category.class, R.layout.menu_item, MenuViewHolder.class, category) {
-            @Override
-            protected void populateViewHolder(MenuViewHolder viewHolder, Category model, int position) {
-                viewHolder.txtMenuName.setText(model.getName());
-                Picasso.with(getBaseContext()).load(model.getImage())
-                        .into(viewHolder.imageView);
-                final Category clickItem = model;
-                viewHolder.setItemClickListener(new ItemClickListener() {
-                    @Override
-                    public void onClick(View view, int position, boolean isLongClick) {
-                        //Get CategoryId and send to new Activity
-                        Intent foodList = new Intent(Home.this, FoodList.class);
-                        foodList.putExtra("CategoryId", adapter.getRef(position).getKey());
-                        startActivity(foodList);
-                    }
-                });
-            }
-        };
-        recycler_menu.setAdapter(adapter);
-    }
 
 }

@@ -4,48 +4,37 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.support.design.widget.NavigationView;
-import android.support.v4.view.GravityCompat;
-import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.capstone.R;
+import com.example.capstone.Common.Infomation;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 
 public class ChatList extends AppCompatActivity {
 
-    //firebase 와 연결
-    private FirebaseDatabase firebaseDatabase = FirebaseDatabase.getInstance();
-    private DatabaseReference databaseReference = firebaseDatabase.getReference("chat_relation");
+    private DatabaseReference chatRef = Infomation.getDatabase(Infomation.CHAT_INFOMAION);
 
     // 리스트뷰 길게 클릭 시 팝업창 생성을 위한 객체
     final Context context = this;
 
     // 사용자 이름름
-    String hostName = SignIn.userID;
+    String myName = Infomation.getUserName(), myID = Infomation.getMyId();
 
 
     ArrayAdapter adapter;
     ArrayList<String> userList = new ArrayList<>();
     AlertDialog.Builder alert;
-    TextView hostNameTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,10 +54,6 @@ public class ChatList extends AppCompatActivity {
 
     }
 
-    // 두개의 스트링을 합치기
-    private String integrate(String hostName, String username) {
-        return hostName.compareTo(username) > 0 ? hostName + ", " + username : username + ", " + hostName;
-    }
 
     public void alertListen(String title, String message) {
         alert = new AlertDialog.Builder(this);
@@ -91,14 +76,6 @@ public class ChatList extends AppCompatActivity {
                         return;
                     }
                 }
-                // 폰 주인
-                ChatRelation cr = new ChatRelation();
-
-                cr.setUser1(hostName);
-                cr.setUser2(username);
-                cr.setChatName(integrate(cr.getUser1(), cr.getUser2()));
-
-                databaseReference.child(cr.getChatName()).setValue(cr);
             }
         });
 
@@ -121,9 +98,8 @@ public class ChatList extends AppCompatActivity {
             public boolean onItemLongClick(AdapterView<?> arg0, View arg1, final int position, long arg3) {
                 Toast.makeText(getBaseContext(), "long~~~~~~~~~", Toast.LENGTH_SHORT).show();
 
-
-                String user = userList.get(position), host = hostName;
-                final String chatName = integrate(user, host);
+                String user = userList.get(position);
+                final String chatName = Infomation.integrate(user, myName);
 
                 final CharSequence[] items = {"채팅방 이름 설정", "나가기"};
                 AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
@@ -137,9 +113,9 @@ public class ChatList extends AppCompatActivity {
                                         int id) {
 
                         // 채팅방 나가기
-                        if (items[id].equals("나가기")) {
-                            databaseReference.child(chatName).removeValue();
-                        }
+//                        if (items[id].equals("나가기")) {
+//                            databaseReference.child(chatName).removeValue();
+//                        }
 
 
                         // 프로그램을 종료한다
@@ -169,8 +145,8 @@ public class ChatList extends AppCompatActivity {
                         getApplicationContext(), // 현재화면의 제어권자
                         Chatting.class); // 다음넘어갈 화면
 
-                intent.putExtra("user", userList.get(position));
-                intent.putExtra("host", hostName);
+                // 클릭한 user id를 넘긴다.
+                intent.putExtra("USER_ID", adapter.getItem(position).toString());
 
                 startActivity(intent);
             }
@@ -179,17 +155,17 @@ public class ChatList extends AppCompatActivity {
 
 
     public void showListView() {
-        databaseReference.addChildEventListener(new ChildEventListener() {  // message는 child의 이벤트를 수신합니다.
+
+        chatRef.addChildEventListener(new ChildEventListener() {  // message는 child의 이벤트를 수신합니다.
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                ChatRelation cr = dataSnapshot.getValue(ChatRelation.class);
-
-                if (hostName.equals(cr.getUser1()) || hostName.equals(cr.getUser2())) {
-                    String userName = hostName.equals(cr.getUser1()) ? cr.getUser2() : cr.getUser1();
-                    userList.add(userName);
-                    adapter.add(userName);
+                // 상대방 채팅자 id 구함.
+                String opponentId = Infomation.getOther(dataSnapshot.getKey(), myID, ", ");
+                // null 이면 나랑의 채팅은 아닌 것
+                if (opponentId != null) {
+                    userList.add(opponentId);
+                    adapter.add(opponentId);
                 }
-
             }
 
             @Override
@@ -210,11 +186,5 @@ public class ChatList extends AppCompatActivity {
             }
         });
     }
-
-    public void plusChat(View v) {
-        alertListen("채팅방 생성", "채팅하고자 하는 상대방 이름을 적어주세요");
-        alert.show();
-    }
-
 
 }

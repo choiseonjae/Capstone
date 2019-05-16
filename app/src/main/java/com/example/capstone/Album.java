@@ -9,17 +9,20 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.widget.Toast;
 
-import com.example.capstone.Model.AlbumFile;
-import com.example.capstone.Model.FireBaseRef;
+import com.example.capstone.Common.Infomation;
+import com.example.capstone.Model.Picture;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.storage.StorageReference;
 
 
 public class Album extends AppCompatActivity {
 
+    final String myID = Infomation.getMyId();
     RecyclerAdapter adapter;
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,16 +42,22 @@ public class Album extends AppCompatActivity {
 
     private void getData() {
 
-        FireBaseRef.ALBUM_DATABASE.child(SignIn.userID).addChildEventListener(new ChildEventListener() {
+        // 내 앨범 데이터 참조 가져오기
+        final DatabaseReference albumDataRef = Infomation.getAlbumData(myID);
+        albumDataRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
 
-                AlbumFile af = dataSnapshot.getValue(AlbumFile.class);
-                String folder = SignIn.userID + "/" + af.getFileName();
-                Toast.makeText(getApplicationContext(), folder, Toast.LENGTH_SHORT).show();
+                // DB에 추가된 picture 정보를 가져온다.
+                Picture picture = dataSnapshot.getValue(Picture.class);
+                // 해당 파일은 내 ID / 파일 이름 에 존재
+                String filePath = myID + "/" + picture.getFileName();
+
+                // 그 파일의 참조 가져옴
+                final StorageReference albumRef = Infomation.getAlbum(filePath);
 
                 //Url을 다운받기
-                FireBaseRef.ALBUM_STORAGE.child(folder).getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                albumRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
                             @Override
                             public void onSuccess(Uri uri) {
                                 adapter.addItem(uri.toString());
