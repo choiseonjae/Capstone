@@ -56,8 +56,8 @@ public class MainActivity extends AppCompatActivity {
 //            }
 //        }
 //
-//        //test
-   //     startActivity(new Intent(getApplicationContext(), GPS.class));
+////        //test
+//        startActivity(new Intent(getApplicationContext(), GPS.class));
 
 
         backPressCloseHandler = new BackPressCloseHandler(this);

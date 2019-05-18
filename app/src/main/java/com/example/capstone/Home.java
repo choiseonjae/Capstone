@@ -234,6 +234,11 @@ public class Home extends AppCompatActivity
                         Toast.makeText(getApplicationContext(), "업로드 완료!", Toast.LENGTH_SHORT).show();
                         Picture picture = new Picture();
                         picture.setFileName(filename);
+                        String gps[] = new GPS().currentLocation(getApplicationContext(),Home.this);
+                        picture.setGpsProvider(gps[0]);
+                        picture.setLongitude(Double.parseDouble(gps[1]));
+                        picture.setLatitude(Double.parseDouble(gps[2]));
+                        picture.setAltitude(Double.parseDouble(gps[3]));
                         //picture.setGps();
                         picture.setUploadID(myID);
                         //picture.setUri();
