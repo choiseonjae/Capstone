@@ -11,8 +11,8 @@ import java.util.Date;
 
 public class Infomation {
 
-    static final String ALBUM = "Album";
-    static final String storageUrl = "gs://capstone-843d1.appspot.com";
+    public static final String ALBUM = "Album";
+    public static final String storageUrl = "gs://capstone-843d1.appspot.com";
 
     // firebase 객체 생성
     private static final DatabaseReference database = FirebaseDatabase.getInstance().getReference();

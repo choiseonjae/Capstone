@@ -4,14 +4,9 @@ import java.util.ArrayList;
 
 public class Picture {
 
-    private String fileName;
-    private String uploadID;
     private ArrayList<String> person;
-    private String uri;
-    private String gpsProvider;
-    private double longitude;
-    private double latitude;
-    private double altitude;
+    private String fileName, uploadID, uri, gpsProvider, location;
+    private double longitude, latitude, altitude;
 
     public String getUploadID() {
         return uploadID;
@@ -75,5 +70,13 @@ public class Picture {
 
     public void setAltitude(double altitude) {
         this.altitude = altitude;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
     }
 }

@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Message;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -20,6 +21,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -61,7 +63,6 @@ public class Home extends AppCompatActivity
 
     RecyclerView recycler_menu;
     RecyclerView.LayoutManager layoutManager;
-
 
 
     @Override
@@ -222,7 +223,7 @@ public class Home extends AppCompatActivity
         final String filename = new SimpleDateFormat("yyyyMMHH_mmss").format(new Date()) + ".png";
 
         // 사용자 폴더에 사진 파일 저장을 위한 서버 저장 공간 참조 가져옴.
-        StorageReference storageRef = Infomation.getAlbum(myID+ "/" + filename);
+        StorageReference storageRef = Infomation.getAlbum(myID + "/" + filename);
 
         // 서버에 사진 업로드
         storageRef.putFile(photoUri)
@@ -230,19 +231,50 @@ public class Home extends AppCompatActivity
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        progressDialog.dismiss(); //업로드 진행 Dialog 상자 닫기
-                        Toast.makeText(getApplicationContext(), "업로드 완료!", Toast.LENGTH_SHORT).show();
-                        Picture picture = new Picture();
-                        picture.setFileName(filename);
-                        String gps[] = new GPS().currentLocation(getApplicationContext(),Home.this);
-                        picture.setGpsProvider(gps[0]);
-                        picture.setLongitude(Double.parseDouble(gps[1]));
-                        picture.setLatitude(Double.parseDouble(gps[2]));
-                        picture.setAltitude(Double.parseDouble(gps[3]));
-                        //picture.setGps();
-                        picture.setUploadID(myID);
-                        //picture.setUri();
-                        Infomation.getAlbumData(myID).push().setValue(picture);
+                        try {
+
+                            progressDialog.dismiss(); //업로드 진행 Dialog 상자 닫기
+
+                            final Picture picture = new Picture();
+                            picture.setFileName(filename);
+                            String gps[] = new GPS().currentLocation(getApplicationContext(), Home.this);
+
+                            picture.setGpsProvider(gps[0]);
+                            picture.setLongitude(Double.parseDouble(gps[1]));
+                            picture.setLatitude(Double.parseDouble(gps[2]));
+                            picture.setAltitude(Double.parseDouble(gps[3]));
+
+                            picture.setUploadID(myID);
+
+                            final DatabaseReference pictureRef = Infomation.getAlbumData(myID).push();
+                            pictureRef.setValue(picture);
+
+                            Thread thread = new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    try {
+                                        Log.e("Thread 시작","");
+                                        String location = GPS.getAdrress(picture.getLatitude(), picture.getLongitude());
+                                        Log.e("location",location);
+                                        picture.setLocation(location);
+                                        pictureRef.setValue(picture);
+
+
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                            );
+
+                            thread.start();
+
+
+                            Toast.makeText(getApplicationContext(), "업로드 완료!", Toast.LENGTH_SHORT).show();
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
 
                     }
                 })
@@ -283,7 +315,6 @@ public class Home extends AppCompatActivity
         } catch (IOException e) {
         }
     }
-
 
 
 }
