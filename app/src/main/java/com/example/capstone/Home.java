@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Message;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -28,6 +27,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.capstone.Album.Album;
 import com.example.capstone.Common.Infomation;
 import com.example.capstone.Model.Picture;
 import com.example.capstone.Model.Category;
@@ -235,6 +235,8 @@ public class Home extends AppCompatActivity
 
                             progressDialog.dismiss(); //업로드 진행 Dialog 상자 닫기
 
+                            final DatabaseReference pictureRef = Infomation.getAlbumData(myID).push();
+
                             final Picture picture = new Picture();
                             picture.setFileName(filename);
                             String gps[] = new GPS().currentLocation(getApplicationContext(), Home.this);
@@ -243,19 +245,19 @@ public class Home extends AppCompatActivity
                             picture.setLongitude(Double.parseDouble(gps[1]));
                             picture.setLatitude(Double.parseDouble(gps[2]));
                             picture.setAltitude(Double.parseDouble(gps[3]));
-
                             picture.setUploadID(myID);
+                            picture.setPictureID(pictureRef.getKey());
+                            picture.setUri(photoUri.toString());
 
-                            final DatabaseReference pictureRef = Infomation.getAlbumData(myID).push();
                             pictureRef.setValue(picture);
 
                             Thread thread = new Thread(new Runnable() {
                                 @Override
                                 public void run() {
                                     try {
-                                        Log.e("Thread 시작","");
+                                        Log.e("Thread 시작", "");
                                         String location = GPS.getAdrress(picture.getLatitude(), picture.getLongitude());
-                                        Log.e("location",location);
+                                        Log.e("location", location);
                                         picture.setLocation(location);
                                         pictureRef.setValue(picture);
 

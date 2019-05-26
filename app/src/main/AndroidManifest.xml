@@ -18,13 +18,14 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".GPS"></activity>
+        <activity android:name=".DetailPicture"></activity>
+        <activity android:name=".GPS" />
         <activity android:name=".Setting" />
         <activity android:name=".Chatting" />
         <activity android:name=".ChatList" />
         <activity android:name=".PhoneAuthActivity" />
         <activity android:name=".StartActivity" />
-        <activity android:name=".Album" />
+        <activity android:name=".Album.Album" />
         <activity android:name=".SignUp" />
         <activity android:name=".SignIn" />
         <activity

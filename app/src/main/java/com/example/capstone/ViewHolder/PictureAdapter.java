@@ -1,24 +1,31 @@
-package com.example.capstone;
+package com.example.capstone.ViewHolder;
 
 import android.content.Context;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
+
+import com.example.capstone.DetailPicture;
+import com.example.capstone.Model.Picture;
+import com.example.capstone.R;
+import com.example.capstone.StartActivity;
 import com.squareup.picasso.Picasso;
+
 import java.util.ArrayList;
 
-public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemViewHolder> {
+public class PictureAdapter extends RecyclerView.Adapter<PictureAdapter.ItemViewHolder> {
     // adapter에 들어갈 list 입니다.
-    ArrayList<String> mBoard = new ArrayList<>();
+    ArrayList<Picture> mBoard = new ArrayList<>();
     Context context;
     int temp_position;
     View view;
 
-    RecyclerAdapter(Context context) {
+    public PictureAdapter(Context context) {
         this.context = context;
     }
 
@@ -43,9 +50,18 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemVi
         return mBoard.size();
     }
 
-    void addItem(String uri) {
+    public void addItem(Picture picture) {
         // 외부에서 item을 추가시킬 함수입니다.
-        mBoard.add(uri);
+        mBoard.add(picture);
+    }
+
+    public void remove(Picture picture) {
+        for (Picture delete : mBoard) {
+            if (delete.getPictureID().equals(picture.getPictureID())) {
+                mBoard.remove(mBoard.indexOf(delete));
+                return;
+            }
+        }
     }
 
     // RecyclerView의 핵심인 ViewHolder 입니다.
@@ -53,14 +69,24 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ItemVi
     class ItemViewHolder extends RecyclerView.ViewHolder {
 
         private ImageView imageView;
+        private Picture picture;
 
         ItemViewHolder(View itemView) {
             super(itemView);
             imageView = itemView.findViewById(R.id.imageView);
+            imageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(context, DetailPicture.class);
+                    intent.putExtra("picture", picture);
+                    context.startActivity(intent);
+                }
+            });
         }
 
-        void onBind(String uri) {
-            Picasso.with(context).load(uri).fit().centerInside().into(imageView);
+        void onBind(Picture picture) {
+            this.picture = picture;
+            Picasso.with(context).load(picture.getUri()).fit().centerInside().into(imageView);
         }
 
     }

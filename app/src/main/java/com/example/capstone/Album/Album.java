@@ -1,4 +1,4 @@
-package com.example.capstone;
+package com.example.capstone.Album;
 
 import android.net.Uri;
 import android.os.Bundle;
@@ -7,10 +7,13 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.example.capstone.Common.Infomation;
 import com.example.capstone.Model.Picture;
+import com.example.capstone.R;
+import com.example.capstone.ViewHolder.PictureAdapter;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
@@ -23,7 +26,7 @@ import com.google.firebase.storage.StorageReference;
 public class Album extends AppCompatActivity {
 
     final String myID = Infomation.getMyId();
-    RecyclerAdapter adapter;
+    PictureAdapter adapter;
 
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -36,7 +39,7 @@ public class Album extends AppCompatActivity {
     private void init() {  //리사이클러뷰 초기화 및 동작
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
         recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
-        adapter = new RecyclerAdapter(this);
+        adapter = new PictureAdapter(this);
         recyclerView.setAdapter(adapter);
     }
 
@@ -49,44 +52,32 @@ public class Album extends AppCompatActivity {
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
 
                 // DB에 추가된 picture 정보를 가져온다.
-                Picture picture = dataSnapshot.getValue(Picture.class);
-                // 해당 파일은 내 ID / 파일 이름 에 존재
-                String filePath = myID + "/" + picture.getFileName();
-
-                // 그 파일의 참조 가져옴
-                final StorageReference albumRef = Infomation.getAlbum(filePath);
-
-                //Url을 다운받기
-                albumRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                            @Override
-                            public void onSuccess(Uri uri) {
-                                adapter.addItem(uri.toString());
-                                adapter.notifyDataSetChanged();
-
-                            }
-                        }).addOnFailureListener(new OnFailureListener() {
-                            @Override
-                            public void onFailure(@NonNull Exception e) {
-                                Toast.makeText(getApplicationContext(), "다운로드 실패", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-
+                final Picture picture = dataSnapshot.getValue(Picture.class);
+                if (!picture.isDeleted()) {
+                    // 해당 파일은 내 ID / 파일 이름 에 존재
+                    adapter.addItem(picture);
+                    adapter.notifyDataSetChanged();
+                }
 
             }
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
+                Picture updatePicture = dataSnapshot.getValue(Picture.class);
+                adapter.remove(updatePicture);
+                adapter.notifyDataSetChanged();
             }
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-
+                Log.e("child", "remove");
+                adapter.notifyDataSetChanged();
             }
 
             @Override
             public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-
+                Log.e("child", "move");
+                adapter.notifyDataSetChanged();
             }
 
             @Override
@@ -94,6 +85,7 @@ public class Album extends AppCompatActivity {
 
             }
         });
+
     }
 
 }
