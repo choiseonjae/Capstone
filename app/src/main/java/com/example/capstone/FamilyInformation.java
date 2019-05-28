@@ -2,6 +2,7 @@ package com.example.capstone;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -9,6 +10,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -30,6 +32,9 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class FamilyInformation extends AppCompatActivity {
 
     FamilyAdapter adapter;
@@ -48,6 +53,8 @@ public class FamilyInformation extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 user = dataSnapshot.getValue(User.class);
+                init();
+                getData();
             }
 
             @Override
@@ -59,8 +66,6 @@ public class FamilyInformation extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        init();
-        getData();
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -73,52 +78,24 @@ public class FamilyInformation extends AppCompatActivity {
         });
 
 
-// 가족 없으면
-//        if(adapter.isEmpty()){
-//
-//            // RelativeLayout 객체를 생성합니다.
-//            RelativeLayout rl = new RelativeLayout(this);
-//            RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
-//                    ViewGroup.LayoutParams.MATCH_PARENT,
-//                    ViewGroup.LayoutParams.MATCH_PARENT
-//            );
-//            rl.setLayoutParams(params);
-//
-//
-//            // 두 번째 화면 중앙 버튼 구현
-//            TextView textView_noFamily = new TextView(this);
-//            textView_noFamily.setId(View.generateViewId());
-//            textView_noFamily.setText("연결된 가족이 없습니다.");
-//
-//            RelativeLayout.LayoutParams middleTextViewParams = new RelativeLayout.LayoutParams(
-//                    ViewGroup.LayoutParams.WRAP_CONTENT,
-//                    ViewGroup.LayoutParams.WRAP_CONTENT
-//            );
-//            textView_noFamily.setLayoutParams(middleTextViewParams);
-//
-//            middleTextViewParams.addRule(RelativeLayout.CENTER_IN_PARENT, 1);
-//
-//            rl.addView(textView_noFamily);
-//
-//            setContentView(rl);
-//
-//
-//        }
-
     }
 
     private void init() {  //리사이클러뷰 초기화 및 동작
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
+
+        // 3 개 나옴 한 줄에 리사이클러뷰가 네모 형태로 나중에 써보셈
+//      recyclerView.setLayoutManager(new GridLayoutManager(this, 3));
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
         adapter = new FamilyAdapter(this);
         recyclerView.setAdapter(adapter);
     }
 
     private void familyAdd_alert() {
-        AlertDialog.Builder ad = new AlertDialog.Builder(FamilyInformation.this);
+        final AlertDialog.Builder ad = new AlertDialog.Builder(FamilyInformation.this);
 
-        ad.setTitle("가족 관계 추가");       // 제목 설정
-        ad.setMessage("생성할 관계의 이름을 입력해주세요.");   // 내용 설정
+        ad.setTitle("가족 추가");       // 제목 설정
+        ad.setMessage("추가할 가족 ID 입력해주세요.");   // 내용 설정
 
         // EditText 삽입하기
         final EditText et = new EditText(FamilyInformation.this);
@@ -130,50 +107,71 @@ public class FamilyInformation extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int which) {
 
                 // Text 값
-                final String familyName = et.getText().toString();
+                final String addID = et.getText().toString();
 
-                // 가족 관계 새로 생성
-                final DatabaseReference userRef = Common.getDatabase("Family").push();
+                // 추가할 가족의 ID를 User DB 에서 확인하기 위해 참조를 가져온다.
+                final DatabaseReference userRef = Common.getDatabase("User").child(addID);
 
-                // 구성원 나 혼자
-                userRef.child(familyName).push().setValue(Common.getMyId());
-//                userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-//                    @Override
-//                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-//                        // 가족이 존재하면 (+ 넣어야 할 사항 -> 상대방의 의사 물어보기 + 상대방도 가족있을 때 처리)
-//                        if (dataSnapshot.exists()) {
-//
-//                            if(user.getFamilyID() != null){
-//                                Log.e("","!=null");
-//                                final DatabaseReference familyRef = Common.getDatabase("Family").child(user.getFamilyID());
-//                                familyRef.push().setValue(familyID);
-//                            }else{
-//                                Log.e("?","s");
-//                                final DatabaseReference familyRef = Common.getDatabase("Family").push();
-//                                user.setFamilyID(familyRef.getKey());
-//                                Common.getDatabase("User").child(Common.getMyId()).setValue(user);
-//                                // + 상대편 가족도 추가해주기
-//                                // 가족 묶음에 우리 ID 추가
-//                                familyRef.push().setValue(Common.getMyId());
-//                                familyRef.push().setValue(familyID);
-//                            }
-//
-//
-//                        } else
-//                            Toast.makeText(getApplicationContext(), "ID가 존재하지 않습니다.", Toast.LENGTH_LONG);
-//
-//                        Log.e("exist : ", dataSnapshot.exists() + "");
-//                        Log.e("data : ", dataSnapshot.toString());
-//                    }
-//
-//                    @Override
-//                    public void onCancelled(@NonNull DatabaseError databaseError) {
-//
-//                    }
-//                });
+                userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
-                // 닫기
-                dialog.dismiss();
+                        // User DB 에서 존재하지 않는 사용자이면 종료
+                        if (!dataSnapshot.exists()) {
+                            Log.d("없는 ", "사용자 입니다.");
+                            return;
+                        }
+
+                        // 이미 맺어진 가족이 있으면 종료
+                        // 현재는 처음부터 값을 안 넣어서 null 로 비교함.
+                        String opponentFamilyID = dataSnapshot.getValue(User.class).getFamilyID();
+                        if (!opponentFamilyID.equals(""))
+//                        if (opponentFamilyID != null)
+                            return;
+
+                        // 맺어진 가족이 없는 사용자이기 때문에 내 가족으로 추가
+                        // 1. 현재 사용자가 가족관계가 있는지 본다.
+                        // 2. 현재 사용자에게 가족관계가 없으면 생성 및 추가, 있으면 가져온다.
+                        // 3. 상대방 User DB 에 familyID를 추가한다.
+                        // 4. 가지고 있는 가족 ID로 내 이름과, 사용자 이름을 넣는다.
+
+                        String familyID = "";
+                        DatabaseReference familyRef;
+                        // family DB 와 family ID를 가져온다.
+                        // 현재는 값 입력을 아예 안해서 null 로 비교
+                        if (user.getFamilyID().equals("")) {
+//                        if(user.getFamilyID() == null){
+                            familyRef = Common.getDatabase("Family").push();
+                            familyID = familyRef.getKey();
+
+                            // 사용자 User DB에 family ID 추가
+                            user.setFamilyID(familyID);
+                            Common.getDatabase("User").child(Common.getMyId()).setValue(user);
+
+                            // family DB에 사용자 추가
+                            familyRef.push().setValue(Common.getMyId());
+                        } else {
+                            familyID = user.getFamilyID();
+                            familyRef = Common.getDatabase("Family").child(familyID);
+                        }
+
+                        Map<String, Object> update = new HashMap<>();
+                        update.put("familyID", familyID);
+
+                        // user DB에 family ID 추가
+                        Common.getDatabase("User").child(addID).updateChildren(update);
+
+                        // family DB에 추가
+                        familyRef.push().setValue(addID);
+
+
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
 
             }
         });
@@ -188,9 +186,7 @@ public class FamilyInformation extends AppCompatActivity {
                 this.dialog = dialog;
                 this.which = which;
 
-                Toast.makeText(getApplicationContext(), "취소", Toast.LENGTH_SHORT);
-
-                dialog.dismiss();     //닫기
+                Toast.makeText(FamilyInformation.this, "취소", Toast.LENGTH_SHORT);
             }
         });
 
@@ -201,22 +197,29 @@ public class FamilyInformation extends AppCompatActivity {
 
     private void getData() {
 
-        final DatabaseReference familyRef = Common.getDatabase("Family");
+        String familyID = user.getFamilyID();
+        final DatabaseReference familyRef = Common.getDatabase("Family").child(familyID);
         familyRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-                for (DataSnapshot child : dataSnapshot.getChildren())
-                    adapter.addItem(new String[]{dataSnapshot.getKey(), child.getKey()});
+                Log.e("dataSnapshot : ", dataSnapshot.toString());
+
+                // 현재 사용자랑 같은 팀을 보여줌.
+                if (!dataSnapshot.getValue().toString().equals(Common.getMyId()))
+                    adapter.addItem(dataSnapshot.getValue().toString());
                 adapter.notifyDataSetChanged();
             }
 
             @Override
             public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                Log.e("change", dataSnapshot.toString());
                 adapter.notifyDataSetChanged();
             }
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+                Log.e("remove", dataSnapshot.toString());
+                adapter.remove(dataSnapshot.getValue().toString());
                 adapter.notifyDataSetChanged();
             }
 
