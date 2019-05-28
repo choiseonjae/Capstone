@@ -6,16 +6,10 @@ import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-
-import com.example.capstone.Common.Infomation;
-import com.google.firebase.database.DatabaseReference;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -84,10 +78,23 @@ public class GPS extends AppCompatActivity {
                     0);
         } else {
             Location location = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            final String provider = location.getProvider();
-            final double longitude = location.getLongitude();
-            final double latitude = location.getLatitude();
-            final double altitude = location.getAltitude();
+
+            final String provider;
+            final double longitude;
+            final double latitude;
+            final double altitude;
+
+            if(location!= null){
+                provider = location.getProvider();
+                latitude = location.getLatitude();
+                longitude = location.getLongitude();
+                altitude = location.getAltitude();
+            }else {
+                provider = "제공 하지 못함.";
+                latitude = -1;
+                longitude = -1;
+                altitude = -1;
+            }
 
             // 네트워킹에서는 강제로 분리 왜냐하면 네트워크 받아오는 동안 프로그램이 멈추니까
             // 프로그램에서 자체적으로 Thread를 사용하게 만든 거 같다.

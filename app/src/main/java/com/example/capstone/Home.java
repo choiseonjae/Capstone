@@ -28,7 +28,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.capstone.Album.Album;
-import com.example.capstone.Common.Infomation;
+import com.example.capstone.Common.Common;
 import com.example.capstone.Model.Picture;
 import com.example.capstone.Model.Category;
 import com.example.capstone.ViewHolder.MenuViewHolder;
@@ -51,7 +51,7 @@ public class Home extends AppCompatActivity
     // camera
     private static final int REQUEST_IMAGE_CAPTURE = 672;
 
-    final String myID = Infomation.getMyId();
+    final String myID = Common.getMyId();
 
     private Uri photoUri;
 
@@ -75,7 +75,7 @@ public class Home extends AppCompatActivity
         toolbar.setTitle("Menu");
 
         //Init Firebase
-        category = Infomation.getDatabase("Category");
+        category = Common.getDatabase("Category");
 
         // 오른쪽 하단 원 버튼 : 카메라 실행
         ((FloatingActionButton) findViewById(R.id.fab)).setOnClickListener(new View.OnClickListener() {
@@ -100,7 +100,7 @@ public class Home extends AppCompatActivity
         //Set Name for user
         View headerView = navigationView.getHeaderView(0);
         txtFullName = headerView.findViewById(R.id.txtFullName);
-        txtFullName.setText(Infomation.getUserName());
+        txtFullName.setText(Common.getUserName());
 
         //Load menu
         recycler_menu = findViewById(R.id.recycler_menu);
@@ -220,10 +220,10 @@ public class Home extends AppCompatActivity
         progressDialog.show();
 
         // 현재 시간 + png
-        final String filename = new SimpleDateFormat("yyyyMMHH_mmss").format(new Date()) + ".png";
+        final String filename = new SimpleDateFormat("yyyyMMHH_mmss").format(new Date());
 
         // 사용자 폴더에 사진 파일 저장을 위한 서버 저장 공간 참조 가져옴.
-        StorageReference storageRef = Infomation.getAlbum(myID + "/" + filename);
+        StorageReference storageRef = Common.getAlbum(myID + "/" + filename);
 
         // 서버에 사진 업로드
         storageRef.putFile(photoUri)
@@ -235,7 +235,7 @@ public class Home extends AppCompatActivity
 
                             progressDialog.dismiss(); //업로드 진행 Dialog 상자 닫기
 
-                            final DatabaseReference pictureRef = Infomation.getAlbumData(myID).push();
+                            final DatabaseReference pictureRef = Common.getAlbumData(myID).push();
 
                             final Picture picture = new Picture();
                             picture.setFileName(filename);
@@ -248,29 +248,30 @@ public class Home extends AppCompatActivity
                             picture.setUploadID(myID);
                             picture.setPictureID(pictureRef.getKey());
                             picture.setUri(photoUri.toString());
+                            picture.setDeleted(false);
 
                             pictureRef.setValue(picture);
 
-                            Thread thread = new Thread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    try {
-                                        Log.e("Thread 시작", "");
-                                        String location = GPS.getAdrress(picture.getLatitude(), picture.getLongitude());
-                                        Log.e("location", location);
-                                        picture.setLocation(location);
-                                        pictureRef.setValue(picture);
+                            if (picture.getLatitude() != -1) {
+                                Thread thread = new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            Log.e("Thread 시작", "");
+                                            String location = GPS.getAdrress(picture.getLatitude(), picture.getLongitude());
+                                            Log.e("location", location);
+                                            picture.setLocation(location);
+                                            pictureRef.setValue(picture);
 
 
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
                                     }
                                 }
+                                );
+                                thread.start();
                             }
-                            );
-
-                            thread.start();
-
 
                             Toast.makeText(getApplicationContext(), "업로드 완료!", Toast.LENGTH_SHORT).show();
 

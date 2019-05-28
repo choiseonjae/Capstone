@@ -5,6 +5,7 @@ public class User {
     private String Name;
     private String Password;
     private String BirthDate;
+    private String familyID;
 
     public User(){}
 
@@ -38,4 +39,12 @@ public class User {
     public String getBirthDate() { return BirthDate; }
 
     public void setBirthDate(String birthDate) { BirthDate = birthDate; }
+
+    public String getFamilyID() {
+        return familyID;
+    }
+
+    public void setFamilyID(String familyID) {
+        this.familyID = familyID;
+    }
 }

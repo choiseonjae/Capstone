@@ -18,7 +18,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".DetailPicture"></activity>
+        <activity android:name=".InformationChange"></activity>
+        <activity
+            android:name=".FamilyInformation"
+            android:label="@string/title_activity_family_information"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".DetailPicture" />
         <activity android:name=".GPS" />
         <activity android:name=".Setting" />
         <activity android:name=".Chatting" />

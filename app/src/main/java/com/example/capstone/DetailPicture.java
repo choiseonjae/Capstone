@@ -10,7 +10,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.example.capstone.Common.Infomation;
+import com.example.capstone.Common.Common;
 import com.example.capstone.Model.Picture;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -84,7 +84,7 @@ public class DetailPicture extends AppCompatActivity {
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         picture.setDeleted(true);
-                        Infomation.getAlbumData(picture.getUploadID()).child(picture.getPictureID()).setValue(picture);
+                        Common.getAlbumData(picture.getUploadID()).child(picture.getPictureID()).setValue(picture);
                         finish();
                     }
                 });

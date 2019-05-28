@@ -13,7 +13,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.example.capstone.Common.Infomation;
+import com.example.capstone.Common.Common;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -23,13 +23,13 @@ import java.util.ArrayList;
 
 public class ChatList extends AppCompatActivity {
 
-    private DatabaseReference chatRef = Infomation.getDatabase(Infomation.CHAT_INFOMAION);
+    private DatabaseReference chatRef = Common.getDatabase(Common.CHAT_INFOMAION);
 
     // 리스트뷰 길게 클릭 시 팝업창 생성을 위한 객체
     final Context context = this;
 
     // 사용자 이름름
-    String myName = Infomation.getUserName(), myID = Infomation.getMyId();
+    String myName = Common.getUserName(), myID = Common.getMyId();
 
 
     ArrayAdapter adapter;
@@ -99,7 +99,7 @@ public class ChatList extends AppCompatActivity {
                 Toast.makeText(getBaseContext(), "long~~~~~~~~~", Toast.LENGTH_SHORT).show();
 
                 String user = userList.get(position);
-                final String chatName = Infomation.integrate(user, myName);
+                final String chatName = Common.integrate(user, myName);
 
                 final CharSequence[] items = {"채팅방 이름 설정", "나가기"};
                 AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(context);
@@ -160,7 +160,7 @@ public class ChatList extends AppCompatActivity {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 // 상대방 채팅자 id 구함.
-                String opponentId = Infomation.getOther(dataSnapshot.getKey(), myID, ", ");
+                String opponentId = Common.getOther(dataSnapshot.getKey(), myID, ", ");
                 // null 이면 나랑의 채팅은 아닌 것
                 if (opponentId != null) {
                     userList.add(opponentId);

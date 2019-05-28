@@ -9,7 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.example.capstone.Common.Infomation;
+import com.example.capstone.Common.Common;
 import com.example.capstone.Model.ChatData;
 import com.google.firebase.auth.FirebaseUser;
 import com.example.capstone.R;
@@ -23,7 +23,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     public static final int MSG_TYPE_RIGHT = 1;
     private Context mContext;
     private List<ChatData> chatList;
-    private final String myID = Infomation.getMyId();
+    private final String myID = Common.getMyId();
 
     FirebaseUser firebaseUser;
 

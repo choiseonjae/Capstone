@@ -1,24 +1,12 @@
 package com.example.capstone;
 
-import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.graphics.Typeface;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import com.example.capstone.Common.Infomation;
-import com.example.capstone.Model.User;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -64,15 +52,15 @@ public class MainActivity extends AppCompatActivity {
         //자동 로그인 되어있으면 바로 홈으로 아니면, 회원가입/로그인 뜨는 창으로 이동
 //        if(isLogined()){
 //
-//            Infomation.getDatabase("User").addValueEventListener(new ValueEventListener() {
+//            Common.getDatabase("User").addValueEventListener(new ValueEventListener() {
 //                @Override
 //                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 //                    User user = dataSnapshot.child(userID).getValue(User.class);
 //                    Intent homeIntent = new Intent(MainActivity.this, Home.class);
 //
 //                    // id 이름 저장
-//                    Infomation.setUserName(user.getName());
-//                    Infomation.setMyId(userID);
+//                    Common.setUserName(user.getName());
+//                    Common.setMyId(userID);
 //
 //                    Toast.makeText(MainActivity.this, user.getName()+"님 환영합니다!", Toast.LENGTH_SHORT).show();
 //                    startActivity(homeIntent);

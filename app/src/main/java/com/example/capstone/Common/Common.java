@@ -9,7 +9,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 
-public class Infomation {
+public class Common {
 
     public static final String ALBUM = "Album";
     public static final String storageUrl = "gs://capstone-843d1.appspot.com";
@@ -85,7 +85,6 @@ public class Infomation {
             return host.equals(user[0]) ? user[1] : user[0];
         return null;
     }
-
 
     // 두개의 스트링을 합치기
     public static String integrate(String hostName, String username) {

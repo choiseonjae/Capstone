@@ -1,6 +1,5 @@
 package com.example.capstone.Album;
 
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -8,24 +7,20 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.widget.Toast;
 
-import com.example.capstone.Common.Infomation;
+import com.example.capstone.Common.Common;
 import com.example.capstone.Model.Picture;
 import com.example.capstone.R;
 import com.example.capstone.ViewHolder.PictureAdapter;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.storage.StorageReference;
 
 
 public class Album extends AppCompatActivity {
 
-    final String myID = Infomation.getMyId();
+    final String myID = Common.getMyId();
     PictureAdapter adapter;
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +41,7 @@ public class Album extends AppCompatActivity {
     private void getData() {
 
         // 내 앨범 데이터 참조 가져오기
-        final DatabaseReference albumDataRef = Infomation.getAlbumData(myID);
+        final DatabaseReference albumDataRef = Common.getAlbumData(myID);
         albumDataRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
